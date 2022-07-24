@@ -12,7 +12,6 @@ import res.audio.IAudioBuffer;
 import res.audio.IAudioStream;
 
 using Math;
-using res.tools.ResolutionTools;
 
 class BIOS extends res.bios.BIOS {
 	var canvas:CanvasElement;
@@ -94,13 +93,11 @@ class BIOS extends res.bios.BIOS {
 	public function connect(res:RES) {
 		this.res = res;
 
-		final frameSize = res.config.resolution.pixelSize();
+		canvas.width = res.width;
+		canvas.height = res.height;
 
-		canvas.width = frameSize.width;
-		canvas.height = frameSize.height;
-
-		canvas.style.width = '${frameSize.width * scale}px';
-		canvas.style.height = '${frameSize.height * scale}px';
+		canvas.style.width = '${res.width * scale}px';
+		canvas.style.height = '${res.height * scale}px';
 
 		canvas.addEventListener('pointermove', (event:PointerEvent) -> {
 			res.mouse.moveTo((event.x / scale).floor(), (event.y / scale).floor());
