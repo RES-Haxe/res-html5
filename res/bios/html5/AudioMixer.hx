@@ -10,6 +10,6 @@ class AudioMixer extends res.audio.AudioMixer {
 		_ctx = ctx;
 	}
 
-	public function createAudioChannel(buffer:IAudioBuffer, ?loop:Bool):res.audio.AudioChannel
+	public function createAudioChannel(buffer:IAudioBuffer, loop:Bool):res.audio.AudioChannel
 		return new AudioChannel(_ctx, cast buffer, loop);
 }

@@ -21,13 +21,13 @@ class AudioChannel extends res.audio.AudioChannel {
 		this.loop = loop;
 	}
 
-	override function isEnded():Bool
+	function isEnded():Bool
 		return ended;
 
-	override function isPlaying():Bool
+	function isPlaying():Bool
 		return playing;
 
-	override function start() {
+	function start() {
 		play();
 	}
 
@@ -50,7 +50,7 @@ class AudioChannel extends res.audio.AudioChannel {
 		emit(ENDED);
 	}
 
-	override public function pause() {
+	public function pause() {
 		resumeOffset = wrap(playOffset + (ctx.currentTime - startedTime), buffer.numSamples / buffer.sampleRate);
 
 		source.removeEventListener('ended', onSourceEnded);
@@ -58,7 +58,7 @@ class AudioChannel extends res.audio.AudioChannel {
 		playing = false;
 	}
 
-	override public function resume() {
+	public function resume() {
 		if (!playing)
 			play(resumeOffset);
 	}
