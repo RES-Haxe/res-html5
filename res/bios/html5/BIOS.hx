@@ -145,9 +145,11 @@ class BIOS extends res.bios.BIOS {
 	public function createAudioMixer():AudioMixer
 		return new AudioMixer(audioContext);
 
-	public function createFrameBuffer(width:Int, height:Int, palette:Palette):res.display.FrameBuffer
-		return new FrameBuffer(canvas, width, height, palette);
-
 	public function createStorage():res.storage.Storage
 		return new Storage();
+
+	public function createCRT(width:Int, height:Int):res.display.CRT
+		return new CRT(width, height, canvas);
+
+	public function startup() {}
 }
