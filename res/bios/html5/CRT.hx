@@ -23,6 +23,9 @@ class CRT extends res.display.CRT {
 	}
 
 	public function beam(x:Int, y:Int, index:Int, palette:Palette) {
+		if (index == 0)
+			return;
+
 		final pos = y * _width + x;
 
 		final color = palette.get(index);
