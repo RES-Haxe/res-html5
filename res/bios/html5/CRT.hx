@@ -4,7 +4,7 @@ import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
 import js.html.ImageData;
 
-class CRT extends res.display.CRT {
+class CRT extends res.CRT {
 	var _imageData:ImageData;
 	var _canvas:CanvasElement;
 	var _ctx:CanvasRenderingContext2D;

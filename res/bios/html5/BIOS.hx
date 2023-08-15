@@ -1,6 +1,7 @@
 package res.bios.html5;
 
 import js.Browser.document;
+import js.Browser.navigator;
 import js.Browser.window;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
@@ -10,8 +11,14 @@ import js.html.PointerEvent;
 import js.html.audio.AudioContext;
 import res.audio.IAudioBuffer;
 import res.audio.IAudioStream;
+import res.input.ControllerButton;
 
 using Math;
+
+enum ControllerMode {
+	KEYBOARD;
+	GAMEPAD;
+}
 
 class BIOS extends res.bios.BIOS {
 	var canvas:CanvasElement;
@@ -25,6 +32,15 @@ class BIOS extends res.bios.BIOS {
 	var gamepads:Map<Int, Gamepad> = [];
 
 	var audioContext:AudioContext;
+
+	final gamepadButtons:Map<Int, Map<Int, Bool>> = [];
+
+	final gamepapControllerMap:Array<{ctrl:ControllerButton, gpd:Int}> = [
+		{ctrl: A, gpd: 0}, {ctrl: B, gpd: 1}, {ctrl: X, gpd: 2}, {ctrl: Y, gpd: 3}, {ctrl: SELECT, gpd: 8}, {ctrl: START, gpd: 9}, {ctrl: DOWN, gpd: 13},
+		{ctrl: LEFT, gpd: 14}, {ctrl: UP, gpd: 12}, {ctrl: RIGTH, gpd: 15},
+	];
+
+	final controllerMode:Map<Int, ControllerMode> = [0 => KEYBOARD, 1 => KEYBOARD, 2 => KEYBOARD, 3 => KEYBOARD];
 
 	/**
 		@param canvas Canvas element. Will create and add a new one if not set
@@ -56,33 +72,46 @@ class BIOS extends res.bios.BIOS {
 		this.audioContext = new AudioContext();
 	}
 
+	inline function gamepadButtonPressed(gpIndex:Int, button:Int):Bool {
+		return gamepadButtons[gpIndex].exists(button) && gamepadButtons[gpIndex][button];
+	}
+
+	function gamepadButtonDown(gamepad, index:Int, button:Int, ctrlButton:ControllerButton) {
+		controllerMode[index] = GAMEPAD;
+		res.ctrl(index).keyboardMap = false;
+		res.ctrl(index).press(ctrlButton);
+	}
+
+	function gamepadButtonUp(gamepad, index:Int, button:Int, ctrlButton:ControllerButton) {
+		if (controllerMode[index] == GAMEPAD)
+			res.ctrl(index).release(ctrlButton);
+	}
+
+	function updateGamepads() {
+		for (index => gamepad in navigator.getGamepads()) {
+			if (gamepad != null) {
+				if (!gamepadButtons.exists(index))
+					gamepadButtons.set(index, []);
+
+				for (mp in gamepapControllerMap) {
+					if (gamepad.buttons[mp.gpd].pressed && !gamepadButtonPressed(index, mp.gpd)) {
+						gamepadButtonDown(gamepad, index, mp.gpd, mp.ctrl);
+						gamepadButtons[index][mp.gpd] = true;
+					} else if (!gamepad.buttons[mp.gpd].pressed && gamepadButtonPressed(index, mp.gpd)) {
+						gamepadButtonUp(gamepad, index, mp.gpd, mp.ctrl);
+						gamepadButtons[index][mp.gpd] = false;
+					}
+				}
+			}
+		}
+	}
+
 	function animationFrame(time:Float) {
 		final dt:Float = (time - lastTime) / 1000;
 
 		lastTime = time;
-		/*
-			TODO: Conflicts with the Keyboard. Figure out the best way to resolve it
-		 */
-		/*
-			for (index => gamepad in navigator.getGamepads()) {
-				if (gamepad != null) {
-					final controller = res.controller;
 
-					controller.buttonState(A, gamepad.buttons[0].pressed);
-					controller.buttonState(B, gamepad.buttons[1].pressed);
-					controller.buttonState(X, gamepad.buttons[2].pressed);
-					controller.buttonState(Y, gamepad.buttons[2].pressed);
-
-					controller.buttonState(SELECT, gamepad.buttons[8].pressed);
-					controller.buttonState(START, gamepad.buttons[9].pressed);
-
-					controller.buttonState(DOWN, gamepad.buttons[13].pressed);
-					controller.buttonState(LEFT, gamepad.buttons[14].pressed);
-					controller.buttonState(UP, gamepad.buttons[12].pressed);
-					controller.buttonState(RIGTH, gamepad.buttons[15].pressed);
-				}
-			}
-		 */
+		updateGamepads();
 
 		res.update(dt);
 		res.render();
@@ -125,6 +154,11 @@ class BIOS extends res.bios.BIOS {
 			if (event.key.length == 1)
 				res.keyboard.input(event.key);
 
+			final mapping = res.keyboard.whichMap(event.keyCode);
+
+			if (mapping != null)
+				res.ctrl(mapping.index).keyboardMap = true;
+
 			res.keyboard.keyDown(event.keyCode);
 		});
 
@@ -148,7 +182,7 @@ class BIOS extends res.bios.BIOS {
 	public function createStorage():res.storage.Storage
 		return new Storage();
 
-	public function createCRT(width:Int, height:Int):res.display.CRT
+	public function createCRT(width:Int, height:Int):res.CRT
 		return new CRT(width, height, canvas);
 
 	public function startup() {}
