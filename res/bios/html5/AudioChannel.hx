@@ -2,7 +2,7 @@ package res.bios.html5;
 
 import js.html.audio.AudioBufferSourceNode;
 import js.html.audio.AudioContext;
-import res.tools.MathTools.wrap;
+import res.Mth.wrap;
 
 class AudioChannel extends res.audio.AudioChannel {
 	var source:AudioBufferSourceNode;
